@@ -30,16 +30,16 @@ func (h *taskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	findUserAssigne, err := h.userService.UserDetails(input.TaskAssignedTo)
-	if err != nil {
-		response := helper.APIResponse("Failed to create task, assigned user not found", http.StatusBadRequest, "error", err)
-		c.JSON(http.StatusBadRequest, response)
-		return
-	}
+	// findUserAssigne, err := h.userService.UserDetails(input.TaskAssignedTo)
+	// if err != nil {
+	// 	response := helper.APIResponse("Failed to create task, assigned user not found", http.StatusBadRequest, "error", err)
+	// 	c.JSON(http.StatusBadRequest, response)
+	// 	return
+	// }
 
-	currentUser := c.MustGet("currentUser").(user.User)
-	input.TaskCreatedBy = currentUser
-	input.TaskAssignedTo = findUserAssigne.ID
+	// currentUser := c.MustGet("currentUser").(user.User)
+	// input.TaskCreatedBy = currentUser
+	// input.TaskAssignedTo = findUserAssigne.ID
 
 	newTask, err := h.service.CreateTask(input)
 	if err != nil {
@@ -66,13 +66,13 @@ func (h *taskHandler) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	_, err = h.userService.UserDetails(input.TaskAssignedTo)
-	var message = "Failed to create task, assigned user not found"
-	if err != nil {
-		response := helper.APIResponse(message, http.StatusBadRequest, "error", err)
-		c.JSON(http.StatusBadRequest, response)
-		return
-	}
+	// _, err = h.userService.UserDetails(input.TaskAssignedTo)
+	// var message = "Failed to create task, assigned user not found"
+	// if err != nil {
+	// 	response := helper.APIResponse(message, http.StatusBadRequest, "error", err)
+	// 	c.JSON(http.StatusBadRequest, response)
+	// 	return
+	// }
 
 	updateTask, err := h.service.UpdateTask(input)
 	if err != nil {

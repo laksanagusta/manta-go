@@ -2,6 +2,7 @@ package task
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"gorm.io/gorm"
@@ -27,7 +28,7 @@ type Query map[string]interface{}
 
 func (r *repository) FindTaskById(id int) (Task, error) {
 	var task Task
-	err := r.db.Where("id = ?", id).Find(&task).Error
+	err := r.db.Preload("TaskHistories").Preload("Users").Where("id = ?", id).Find(&task).Error
 
 	if err != nil {
 		return task, err
@@ -58,7 +59,11 @@ func (r *repository) CustomFilter(query map[string][]string) ([]Task, error) {
 	var task []Task
 
 	if len(query) == 0 {
-		err := r.db.Find(&task).Limit(20).Error
+		err := r.db.Preload("TaskHistories").Preload("Users").Find(&task).Limit(20).Error
+		//Raw Joins
+		// err := r.db.Joins("JOIN task_histories on task_histories.task_id=tasks.id").Find(&task).Error
+
+		fmt.Println(task[0].ID)
 
 		if err != nil {
 			return task, err
@@ -71,14 +76,14 @@ func (r *repository) CustomFilter(query map[string][]string) ([]Task, error) {
 			if i == len(query) {
 				if k == "limit" {
 					limit, _ := strconv.Atoi(v[0])
-					err := r.db.Limit(limit).Find(&task).Error
+					err := r.db.Preload("TaskHistories").Preload("Users").Limit(limit).Find(&task).Error
 					if err != nil {
 						return task, err
 					}
 					continue
 				}
 
-				err := r.db.Where(k+" = ?", v[0]).Limit(20).Find(&task).Error
+				err := r.db.Where(k+" = ?", v[0]).Preload("TaskHistories").Preload("Users").Limit(20).Find(&task).Error
 				if err != nil {
 					return task, err
 				}

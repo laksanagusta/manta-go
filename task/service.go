@@ -28,8 +28,6 @@ func (s *service) CreateTask(input CreateTaskInput) (Task, error) {
 	task.TaskSubTitle = input.TaskSubTitle
 	task.TaskType = input.TaskType
 	task.CustomerName = input.CustomerName
-	task.TaskCreatedBy = input.TaskCreatedBy.ID
-	task.TaskAssignedTo = input.TaskAssignedTo
 	task.TaskStartTime = time.Time{}
 	task.TaskCompletedTime = time.Time{}
 
@@ -52,7 +50,6 @@ func (s *service) UpdateTask(input UpdateTaskInput) (Task, error) {
 	task.TaskSubTitle = input.TaskSubTitle
 	task.TaskType = helper.CheckIfVariableSetsTypeString(task.TaskType, input.TaskType)
 	task.CustomerName = helper.CheckIfVariableSetsTypeString(task.CustomerName, input.CustomerName)
-	task.TaskAssignedTo = helper.CheckIfVariableSetsTypeNumber(task.TaskAssignedTo, input.TaskAssignedTo)
 	task.TaskStartTime = time.Time{}
 	task.TaskCompletedTime = time.Time{}
 

@@ -7,6 +7,7 @@ import (
 	"novocaine-dev/helper"
 	"novocaine-dev/product"
 	"novocaine-dev/task"
+	"novocaine-dev/taskHistory"
 	"novocaine-dev/user"
 	"strings"
 
@@ -20,17 +21,20 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 	userRepository := user.NewRepository(db)
 	productRepository := product.NewRepository(db)
 	taskRepository := task.NewRepository(db)
+	taskHistoryRepository := taskHistory.NewRepository(db)
 
 	//Service
 	productService := product.NewService(productRepository)
 	userService := user.NewService(userRepository)
 	taskService := task.NewService(taskRepository)
+	taskHistoryService := taskHistory.NewService(taskHistoryRepository)
 	authService := auth.NewService()
 
 	//Handler
 	userHandler := handler.NewUserHandler(userService, authService)
 	productHandler := handler.NewProductHandler(productService)
 	taskHandler := handler.NewTaskHandler(taskService, userService)
+	taskHistoryHandler := handler.NewTaskHistoryHandler(taskHistoryService, taskService, userService)
 
 	router := gin.Default()
 	router.Static("/images", "./images")
@@ -58,6 +62,9 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 	api.PUT("/products/:id", authMiddleware(authService, userService), productHandler.UpdateProduct)
 	api.PUT("/products/upload-image/:id", authMiddleware(authService, userService), productHandler.UploadImage)
 	api.DELETE("/products/:id", authMiddleware(authService, userService), productHandler.DeleteProduct)
+
+	//api taskHistory
+	api.POST("/task-histories", authMiddleware(authService, userService), taskHistoryHandler.CreateTaskHistory)
 
 	return *router
 }

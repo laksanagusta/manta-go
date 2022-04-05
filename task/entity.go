@@ -1,6 +1,8 @@
 package task
 
 import (
+	"novocaine-dev/taskHistory"
+	"novocaine-dev/user"
 	"time"
 )
 
@@ -10,8 +12,10 @@ type Task struct {
 	TaskSubTitle      string
 	TaskType          string
 	CustomerName      string
-	TaskCreatedBy     int
-	TaskAssignedTo    int
+	TaskHistories     []taskHistory.TaskHistory
+	Users             []user.User `gorm:"many2many:task_users"`
 	TaskStartTime     time.Time
 	TaskCompletedTime time.Time
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }

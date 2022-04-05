@@ -6,7 +6,7 @@ type TaskHistoryFormatter struct {
 	LatestStatus string `json:"latestStatus"`
 }
 
-func FormatTask(taskHistory TaskHistory) TaskHistoryFormatter {
+func FormatTaskHistory(taskHistory TaskHistory) TaskHistoryFormatter {
 	taskHistoryFormatter := TaskHistoryFormatter{}
 	taskHistoryFormatter.ID = taskHistory.ID
 	taskHistoryFormatter.Content = taskHistory.Content
@@ -15,11 +15,11 @@ func FormatTask(taskHistory TaskHistory) TaskHistoryFormatter {
 	return taskHistoryFormatter
 }
 
-func FormatTasks(taskHistories []TaskHistory) []TaskHistoryFormatter {
+func FormatTaskHistories(taskHistories []TaskHistory) []TaskHistoryFormatter {
 	tasksFormatter := []TaskHistoryFormatter{}
 
 	for _, task := range taskHistories {
-		taskHistoryFormatter := FormatTask(task)
+		taskHistoryFormatter := FormatTaskHistory(task)
 		tasksFormatter = append(tasksFormatter, taskHistoryFormatter)
 	}
 
