@@ -131,3 +131,73 @@ func (h *taskHandler) Delete(c *gin.Context) {
 	response := helper.APIResponse("Success delete product", http.StatusOK, "success", deleteTask)
 	c.JSON(http.StatusOK, response)
 }
+
+func (h *taskHandler) ProcessTask(c *gin.Context) {
+	var input task.ProcessTaskInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"error": errors}
+		response := helper.APIResponse("Failed to process task", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	findUser, err := h.userService.UserDetails(input.UserID)
+	if err != nil {
+		response := helper.APIResponse("Failed to process task", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	var username string = findUser.Username
+
+	currentUser := c.MustGet("currentUser").(user.User)
+	input.UserIdProcessed = currentUser.ID
+
+	processTask, err := h.service.ProcessTask(input, username)
+	if err != nil {
+		response := helper.APIResponse("Failed to process task", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("Success process task", http.StatusOK, "success", processTask)
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *taskHandler) AssignTask(c *gin.Context) {
+	var input task.AssignTaskInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"error": errors}
+		response := helper.APIResponse("Failed to assign task", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	_, err = h.userService.UserDetails(input.UserID)
+	if err != nil {
+		response := helper.APIResponse("Failed to assign task", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	findTask, err := h.service.FindTaskById(input.TaskID)
+	if err != nil {
+		response := helper.APIResponse("Failed to assign task", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	_, err = h.service.AssignTask(input)
+	if err != nil {
+		response := helper.APIResponse("Failed to assign task", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("Success assign task", http.StatusOK, "success", findTask)
+	c.JSON(http.StatusOK, response)
+}

@@ -13,6 +13,7 @@ type CreateTaskInput struct {
 	TaskSubTitle      string    `json:"taskSubTitle"`
 	TaskType          string    `json:"taskType" binding:"required"`
 	CustomerName      string    `json:"customerName"`
+	TaskRefId         string    `json:"taskRefId"`
 	TaskStartTime     time.Time `json:"taskStartTime"`
 	TaskCompletedTime time.Time `json:"taskCompletedTime"`
 }
@@ -23,6 +24,23 @@ type UpdateTaskInput struct {
 	TaskSubTitle      string    `json:"taskSubTitle"`
 	TaskType          string    `json:"taskType"`
 	CustomerName      string    `json:"customerName"`
+	TaskRefId         string    `json:"taskRefId"`
 	TaskStartTime     time.Time `json:"taskStartTime"`
 	TaskCompletedTime time.Time `json:"taskCompletedTime"`
 }
+
+type ProcessTaskInput struct {
+	Tasks           []string `json:"tasks" binding:"required"`
+	Process         string   `json:"process"`
+	UserID          int      `json:"userId"`
+	UserIdProcessed int
+}
+
+type AssignTaskInput struct {
+	UserID int `json:"userId"`
+	TaskID int `json:"taskId"`
+}
+
+// type TaskRefIds struct {
+// 	TaskRefId string
+// }

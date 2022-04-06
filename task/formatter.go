@@ -14,6 +14,7 @@ type TaskFormatter struct {
 	CustomerName      string                    `json:"customerName"`
 	TaskHistory       []taskHistory.TaskHistory `json:"taskHistory"`
 	Users             []user.User               `json:"users"`
+	TaskRefId         string                    `json:"taskRefId"`
 	TaskStartTime     time.Time                 `json:"taskStartTime"`
 	TaskCompletedTime time.Time                 `json:"taskCompletedTime"`
 	CreatedAt         time.Time                 `json:"createdAt"`
@@ -29,6 +30,7 @@ func FormatTask(task Task) TaskFormatter {
 	taskFormatter.CustomerName = task.CustomerName
 	taskFormatter.TaskHistory = task.TaskHistories
 	taskFormatter.Users = task.Users
+	taskFormatter.TaskRefId = task.TaskRefId
 	taskFormatter.TaskStartTime = task.TaskStartTime
 	taskFormatter.TaskCompletedTime = task.TaskCompletedTime
 	taskFormatter.CreatedAt = task.CreatedAt

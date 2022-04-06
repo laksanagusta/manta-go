@@ -14,6 +14,7 @@ type Task struct {
 	CustomerName      string
 	TaskHistories     []taskHistory.TaskHistory
 	Users             []user.User `gorm:"many2many:task_users"`
+	TaskRefId         string
 	TaskStartTime     time.Time
 	TaskCompletedTime time.Time
 	CreatedAt         time.Time

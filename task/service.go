@@ -3,6 +3,8 @@ package task
 import (
 	"errors"
 	"novocaine-dev/helper"
+	"novocaine-dev/taskHistory"
+	"novocaine-dev/taskUser"
 	"time"
 )
 
@@ -12,14 +14,18 @@ type Service interface {
 	FindTaskById(id int) (Task, error)
 	CustomFilter(query map[string][]string) ([]Task, error)
 	Delete(id FindTaskById) (string, error)
+	ProcessTask(input ProcessTaskInput, username string) ([]Task, error)
+	AssignTask(input AssignTaskInput) (taskUser.TaskUser, error)
 }
 
 type service struct {
-	repository Repository
+	repository      Repository
+	taskHistoryRepo taskHistory.Repository
+	taskUserRepo    taskUser.Repository
 }
 
-func NewService(repository Repository) *service {
-	return &service{repository}
+func NewService(repository Repository, taskHistoryRepo taskHistory.Repository, taskUserRepo taskUser.Repository) *service {
+	return &service{repository, taskHistoryRepo, taskUserRepo}
 }
 
 func (s *service) CreateTask(input CreateTaskInput) (Task, error) {
@@ -28,6 +34,7 @@ func (s *service) CreateTask(input CreateTaskInput) (Task, error) {
 	task.TaskSubTitle = input.TaskSubTitle
 	task.TaskType = input.TaskType
 	task.CustomerName = input.CustomerName
+	task.TaskRefId = input.TaskRefId
 	task.TaskStartTime = time.Time{}
 	task.TaskCompletedTime = time.Time{}
 
@@ -50,6 +57,7 @@ func (s *service) UpdateTask(input UpdateTaskInput) (Task, error) {
 	task.TaskSubTitle = input.TaskSubTitle
 	task.TaskType = helper.CheckIfVariableSetsTypeString(task.TaskType, input.TaskType)
 	task.CustomerName = helper.CheckIfVariableSetsTypeString(task.CustomerName, input.CustomerName)
+	task.TaskRefId = helper.CheckIfVariableSetsTypeString(task.TaskRefId, input.TaskRefId)
 	task.TaskStartTime = time.Time{}
 	task.TaskCompletedTime = time.Time{}
 
@@ -90,4 +98,41 @@ func (s *service) Delete(id FindTaskById) (string, error) {
 	}
 
 	return task, nil
+}
+
+func (s *service) ProcessTask(input ProcessTaskInput, username string) ([]Task, error) {
+	var content string = "Task processed " + input.Process + " by " + username
+	var taskHistories taskHistory.TaskHistory
+
+	taskHistories.Content = content
+	taskHistories.User_id = input.UserIdProcessed
+
+	tasks, err := s.repository.GetTaskByMultipleRefId(input.Tasks)
+	if err != nil {
+		return tasks, err
+	}
+
+	for _, v := range tasks {
+		taskHistories.Task_id = v.ID
+		_, err := s.taskHistoryRepo.Save(taskHistories)
+		if err != nil {
+			return tasks, err
+		}
+	}
+
+	return tasks, nil
+}
+
+func (s *service) AssignTask(input AssignTaskInput) (taskUser.TaskUser, error) {
+	var taskUser taskUser.TaskUser
+
+	taskUser.Task_id = input.TaskID
+	taskUser.User_id = input.UserID
+
+	newTaskUser, err := s.taskUserRepo.Save(taskUser)
+	if err != nil {
+		return newTaskUser, err
+	}
+
+	return newTaskUser, nil
 }

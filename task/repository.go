@@ -14,6 +14,7 @@ type Repository interface {
 	Update(task Task) (Task, error)
 	CustomFilter(query map[string][]string) ([]Task, error)
 	Delete(id int) (string, error)
+	GetTaskByMultipleRefId(tasks []string) ([]Task, error)
 }
 
 type repository struct {
@@ -108,4 +109,15 @@ func (r *repository) Delete(id int) (string, error) {
 	}
 
 	return "success delete task", nil
+}
+
+func (r *repository) GetTaskByMultipleRefId(tasks []string) ([]Task, error) {
+	var task []Task
+	err := r.db.Where("task_ref_id IN ?", tasks).Find(&task).Error
+	if err != nil {
+		return task, err
+	}
+
+	return task, nil
+
 }

@@ -8,6 +8,7 @@ import (
 	"novocaine-dev/product"
 	"novocaine-dev/task"
 	"novocaine-dev/taskHistory"
+	"novocaine-dev/taskUser"
 	"novocaine-dev/user"
 	"strings"
 
@@ -22,11 +23,12 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 	productRepository := product.NewRepository(db)
 	taskRepository := task.NewRepository(db)
 	taskHistoryRepository := taskHistory.NewRepository(db)
+	taskUserRepository := taskUser.NewRepository(db)
 
 	//Service
 	productService := product.NewService(productRepository)
 	userService := user.NewService(userRepository)
-	taskService := task.NewService(taskRepository)
+	taskService := task.NewService(taskRepository, taskHistoryRepository, taskUserRepository)
 	taskHistoryService := taskHistory.NewService(taskHistoryRepository)
 	authService := auth.NewService()
 
@@ -50,6 +52,8 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 
 	//api task
 	api.POST("/tasks", authMiddleware(authService, userService), taskHandler.CreateTask)
+	api.POST("/tasks/process", authMiddleware(authService, userService), taskHandler.ProcessTask)
+	api.POST("/tasks/assign", authMiddleware(authService, userService), taskHandler.AssignTask)
 	api.PUT("/tasks/:id", authMiddleware(authService, userService), taskHandler.UpdateTask)
 	api.GET("/tasks/:id", authMiddleware(authService, userService), taskHandler.FindTaskById)
 	api.GET("/tasks", authMiddleware(authService, userService), taskHandler.CustomFilter)
