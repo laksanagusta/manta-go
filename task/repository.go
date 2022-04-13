@@ -30,6 +30,7 @@ type Query map[string]interface{}
 func (r *repository) FindTaskById(id int) (Task, error) {
 	var task Task
 	err := r.db.Preload("TaskHistories").Preload("Users").Where("id = ?", id).Find(&task).Error
+	fmt.Println(task)
 
 	if err != nil {
 		return task, err

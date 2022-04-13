@@ -1,4 +1,0 @@
-# novocaine-dev/handler
-handler\task.go:187:2: undefined: findTask
-handler\task.go:187:16: cannot assign task.Task to findTask in multiple assignment
-handler\task.go:201:82: undefined: assignTask

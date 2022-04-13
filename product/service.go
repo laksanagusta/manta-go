@@ -49,7 +49,7 @@ func (s *service) CreateProduct(input CreateProductInput) (Product, error) {
 	product.Name = input.Name
 	product.Serial_number = input.Serial_number
 	product.Price = input.Price
-	product.Merchant_id = input.Merchant_id
+	product.Organizaton_id = input.Organizaton_id
 	product.User_id = input.User_id.ID
 	product.Image_url = input.Image_url
 	newProducts, err := s.repository.Save(product)

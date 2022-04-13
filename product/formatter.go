@@ -1,12 +1,12 @@
 package product
 
 type ProductFormatter struct {
-	ID            int    `json:"id"`
-	Name          string `json:"name"`
-	Serial_number string `json:"serial_number"`
-	Price         int    `json:"price"`
-	Image_url     string `json:"image_url"`
-	Merchant_id   int    `json:"merchant_id"`
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	Serial_number  string `json:"serial_number"`
+	Price          int    `json:"price"`
+	Image_url      string `json:"image_url"`
+	Organizaton_id int    `json:"organizaton_id"`
 }
 
 func FormatProduct(product Product) ProductFormatter {
@@ -16,7 +16,7 @@ func FormatProduct(product Product) ProductFormatter {
 	productFormatter.Serial_number = product.Serial_number
 	productFormatter.Price = product.Price
 	productFormatter.Image_url = product.Image_url
-	productFormatter.Merchant_id = product.Merchant_id
+	productFormatter.Organizaton_id = product.Organizaton_id
 
 	return productFormatter
 }

@@ -5,10 +5,13 @@ import (
 	"novocaine-dev/auth"
 	"novocaine-dev/handler"
 	"novocaine-dev/helper"
+	"novocaine-dev/organization"
 	"novocaine-dev/product"
 	"novocaine-dev/task"
 	"novocaine-dev/taskHistory"
 	"novocaine-dev/taskUser"
+	"novocaine-dev/transaction"
+	"novocaine-dev/transactionProduct"
 	"novocaine-dev/user"
 	"strings"
 
@@ -24,12 +27,18 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 	taskRepository := task.NewRepository(db)
 	taskHistoryRepository := taskHistory.NewRepository(db)
 	taskUserRepository := taskUser.NewRepository(db)
+	transactionRepository := transaction.NewRepository(db)
+	transactionProductRepository := transactionProduct.NewRepository(db)
+	organizationRepository := organization.NewRepository(db)
 
 	//Service
 	productService := product.NewService(productRepository)
 	userService := user.NewService(userRepository)
 	taskService := task.NewService(taskRepository, taskHistoryRepository, taskUserRepository)
 	taskHistoryService := taskHistory.NewService(taskHistoryRepository)
+	transactionService := transaction.NewService(transactionRepository, transactionProductRepository)
+	transactionProductService := transactionProduct.NewService(transactionProductRepository)
+	organizationService := organization.NewService(organizationRepository)
 	authService := auth.NewService()
 
 	//Handler
@@ -37,6 +46,9 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 	productHandler := handler.NewProductHandler(productService)
 	taskHandler := handler.NewTaskHandler(taskService, userService)
 	taskHistoryHandler := handler.NewTaskHistoryHandler(taskHistoryService, taskService, userService)
+	transactionHandler := handler.NewTransactionHandler(transactionService)
+	transactionProductHandler := handler.NewTransactionProductHandler(transactionProductService)
+	organizationHandler := handler.NewOrganizationHandler(organizationService)
 
 	router := gin.Default()
 	router.Static("/images", "./images")
@@ -67,8 +79,20 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 	api.PUT("/products/upload-image/:id", authMiddleware(authService, userService), productHandler.UploadImage)
 	api.DELETE("/products/:id", authMiddleware(authService, userService), productHandler.DeleteProduct)
 
+	//transaction
+	api.GET("/transactions/:id", transactionHandler.FindById)
+	//transaction
+	api.GET("/transactions/userId/:userId", transactionHandler.FindTransactionByUser)
+	//transaction product
+	api.POST("/transaction-product/add", authMiddleware(authService, userService), transactionHandler.AddToCart)       //atc
+	api.DELETE("/transaction-product/:id", authMiddleware(authService, userService), transactionProductHandler.Delete) //delete items from cart
+
 	//api taskHistory
 	api.POST("/task-histories", authMiddleware(authService, userService), taskHistoryHandler.CreateTaskHistory)
+
+	//api organizations
+	api.POST("/organizations", authMiddleware(authService, userService), organizationHandler.Save)
+	api.GET("/organizations/:id", authMiddleware(authService, userService), organizationHandler.FindById)
 
 	return *router
 }
