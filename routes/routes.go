@@ -75,6 +75,7 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 	api.GET("/products", productHandler.GetProducts)
 	api.GET("/products/:id", productHandler.GetProductById)
 	api.POST("/products", authMiddleware(authService, userService), productHandler.CreateProduct)
+	api.POST("/products/bulk", authMiddleware(authService, userService), productHandler.CreateProductBulk)
 	api.PUT("/products/:id", authMiddleware(authService, userService), productHandler.UpdateProduct)
 	api.PUT("/products/upload-image/:id", authMiddleware(authService, userService), productHandler.UploadImage)
 	api.DELETE("/products/:id", authMiddleware(authService, userService), productHandler.DeleteProduct)

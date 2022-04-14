@@ -9,7 +9,7 @@ type Product struct {
 	Price          int
 	Image_url      string
 	User_id        int
-	Organizaton_id int
+	OrganizationId int
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

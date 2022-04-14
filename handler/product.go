@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/csv"
+	"fmt"
 	"net/http"
 	"novocaine-dev/helper"
 	"novocaine-dev/product"
@@ -155,4 +157,52 @@ func (h *productHandler) UploadImage(c *gin.Context) {
 	response := helper.APIResponse("Success upload image", http.StatusBadRequest, "success", data)
 	c.JSON(http.StatusBadRequest, response)
 	return
+}
+
+func (h *productHandler) CreateProductBulk(c *gin.Context) {
+	var input product.CreateProductInput
+	file, _, err := c.Request.FormFile("excelfile")
+	if err != nil {
+		response := helper.APIResponse("Failed to create product", http.StatusBadRequest, "error", err)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+	input.User_id = currentUser
+
+	fmt.Println(currentUser)
+
+	reader := csv.NewReader(file)
+	reader.LazyQuotes = true
+
+	var line []string
+	const row = 3
+	for {
+		//store acquired data for each line in the line
+		line, err = reader.Read()
+		if err != nil {
+			break
+		}
+
+		if line[0] == "name" {
+			continue
+		}
+
+		input.Name = line[0]
+		input.Serial_number = line[1]
+		price, err := strconv.Atoi(line[2])
+		if err != nil {
+			response := helper.APIResponse("Failed to create product", http.StatusBadRequest, "error", err)
+			c.JSON(http.StatusBadRequest, response)
+			return
+		}
+		input.Price = price
+
+		// Create Product in the background
+		go h.service.CreateProduct(input)
+	}
+
+	response := helper.APIResponse("Success create product!", http.StatusOK, "success", nil)
+	c.JSON(http.StatusOK, response)
 }

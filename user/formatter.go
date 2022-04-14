@@ -1,20 +1,22 @@
 package user
 
 type UserFormatter struct {
-	ID         int    `json:"id"`
-	Username   string `json:"username"`
-	Name       string `json:"name"`
-	Occupation string `json:"occupation"`
-	Email      string `json:"email"`
-	Token      string `json:"token"`
+	ID              int    `json:"id"`
+	Username        string `json:"username"`
+	Name            string `json:"name"`
+	Occupation      string `json:"occupation"`
+	Email           string `json:"email"`
+	Token           string `json:"token"`
+	Organization_id int    `json:"organization_id"`
 }
 
 type UserFormatterV1 struct {
-	ID         int    `json:"id"`
-	Username   string `json:"username"`
-	Name       string `json:"name"`
-	Occupation string `json:"occupation"`
-	Email      string `json:"email"`
+	ID              int    `json:"id"`
+	Username        string `json:"username"`
+	Name            string `json:"name"`
+	Occupation      string `json:"occupation"`
+	Email           string `json:"email"`
+	Organization_id int    `json:"organization_id"`
 }
 
 func FormatUser(user User, token string) UserFormatter {
@@ -37,6 +39,7 @@ func FormatUserV1(user User) UserFormatterV1 {
 	userFormatter.Name = user.Name
 	userFormatter.Occupation = user.Occupation
 	userFormatter.Email = user.Email
+	userFormatter.Organization_id = user.OrganizationId
 
 	return userFormatter
 }

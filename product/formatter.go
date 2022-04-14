@@ -16,7 +16,7 @@ func FormatProduct(product Product) ProductFormatter {
 	productFormatter.Serial_number = product.Serial_number
 	productFormatter.Price = product.Price
 	productFormatter.Image_url = product.Image_url
-	productFormatter.Organizaton_id = product.Organizaton_id
+	productFormatter.Organizaton_id = product.OrganizationId
 
 	return productFormatter
 }
