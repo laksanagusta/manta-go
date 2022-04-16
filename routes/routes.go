@@ -21,6 +21,8 @@ import (
 )
 
 func SetupRoutes(db *gorm.DB) gin.Engine {
+	//Job
+
 	//Repository
 	userRepository := user.NewRepository(db)
 	productRepository := product.NewRepository(db)
@@ -41,9 +43,11 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 	organizationService := organization.NewService(organizationRepository)
 	authService := auth.NewService()
 
+	productJob := product.NewJob(productService)
+
 	//Handler
 	userHandler := handler.NewUserHandler(userService, authService)
-	productHandler := handler.NewProductHandler(productService)
+	productHandler := handler.NewProductHandler(productService, productJob)
 	taskHandler := handler.NewTaskHandler(taskService, userService)
 	taskHistoryHandler := handler.NewTaskHistoryHandler(taskHistoryService, taskService, userService)
 	transactionHandler := handler.NewTransactionHandler(transactionService)

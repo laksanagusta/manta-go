@@ -13,3 +13,9 @@ type Product struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
+
+type BulkProducts struct {
+	Name         string
+	Price        int
+	SerialNumber string
+}

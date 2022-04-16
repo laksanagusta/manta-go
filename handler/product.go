@@ -2,22 +2,23 @@ package handler
 
 import (
 	"encoding/csv"
-	"fmt"
 	"net/http"
 	"novocaine-dev/helper"
 	"novocaine-dev/product"
 	"novocaine-dev/user"
 	"strconv"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
 type productHandler struct {
 	service product.Service
+	job     product.Job
 }
 
-func NewProductHandler(service product.Service) *productHandler {
-	return &productHandler{service}
+func NewProductHandler(service product.Service, job product.Job) *productHandler {
+	return &productHandler{service, job}
 }
 
 func (h *productHandler) GetProducts(c *gin.Context) {
@@ -159,6 +160,53 @@ func (h *productHandler) UploadImage(c *gin.Context) {
 	return
 }
 
+// func (h *productHandler) CreateProductBulk(c *gin.Context) {
+// 	var input product.CreateProductInput
+// 	file, _, err := c.Request.FormFile("excelfile")
+// 	if err != nil {
+// 		response := helper.APIResponse("Failed to create product", http.StatusBadRequest, "error", err)
+// 		c.JSON(http.StatusBadRequest, response)
+// 		return
+// 	}
+
+// 	currentUser := c.MustGet("currentUser").(user.User)
+// 	input.User_id = currentUser
+
+// 	fmt.Println(currentUser)
+
+// 	reader := csv.NewReader(file)
+// 	reader.LazyQuotes = true
+
+// 	var line []string
+// 	const row = 3
+// 	for {
+// 		//store acquired data for each line in the line
+// 		line, err = reader.Read()
+// 		if err != nil {
+// 			break
+// 		}
+
+// 		if line[0] == "name" {
+// 			continue
+// 		}
+
+// 		input.Name = line[0]
+// 		input.Serial_number = line[1]
+// 		price, err := strconv.Atoi(line[2])
+// 		if err != nil {
+// 			response := helper.APIResponse("Failed to create product", http.StatusBadRequest, "error", err)
+// 			c.JSON(http.StatusBadRequest, response)
+// 			return
+// 		}
+// 		input.Price = price
+
+// 		h.service.CreateProduct(input)
+// 	}
+
+// 	response := helper.APIResponse("Success create product!", http.StatusOK, "success", nil)
+// 	c.JSON(http.StatusOK, response)
+// }
+
 func (h *productHandler) CreateProductBulk(c *gin.Context) {
 	var input product.CreateProductInput
 	file, _, err := c.Request.FormFile("excelfile")
@@ -168,17 +216,22 @@ func (h *productHandler) CreateProductBulk(c *gin.Context) {
 		return
 	}
 
+	jobs := make(chan []interface{}, 0)
+	wg := new(sync.WaitGroup)
+
 	currentUser := c.MustGet("currentUser").(user.User)
 	input.User_id = currentUser
 
-	fmt.Println(currentUser)
-
 	reader := csv.NewReader(file)
-	reader.LazyQuotes = true
 
 	var line []string
-	const row = 3
+
+	go h.job.DispatchWorkers(jobs, wg)
+
+	bulkProductsArr := []product.BulkProducts{}
+
 	for {
+		bulkProduct := product.BulkProducts{}
 		//store acquired data for each line in the line
 		line, err = reader.Read()
 		if err != nil {
@@ -189,19 +242,29 @@ func (h *productHandler) CreateProductBulk(c *gin.Context) {
 			continue
 		}
 
-		input.Name = line[0]
-		input.Serial_number = line[1]
 		price, err := strconv.Atoi(line[2])
 		if err != nil {
 			response := helper.APIResponse("Failed to create product", http.StatusBadRequest, "error", err)
 			c.JSON(http.StatusBadRequest, response)
 			return
 		}
-		input.Price = price
 
-		// Create Product in the background
-		go h.service.CreateProduct(input)
+		bulkProduct.Name = line[0]
+		bulkProduct.Price = price
+		bulkProduct.SerialNumber = line[1]
+
+		bulkProductsArr = append(bulkProductsArr, bulkProduct)
+
+		rowOrdered := make([]interface{}, 0)
+		for _, each := range line {
+			rowOrdered = append(rowOrdered, each)
+		}
+
+		wg.Add(1)
+		jobs <- rowOrdered
 	}
+
+	wg.Wait()
 
 	response := helper.APIResponse("Success create product!", http.StatusOK, "success", nil)
 	c.JSON(http.StatusOK, response)

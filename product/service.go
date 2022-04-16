@@ -1,5 +1,10 @@
 package product
 
+import (
+	"fmt"
+	"strconv"
+)
+
 type Service interface {
 	GetProducts(id int) ([]Product, error)
 	GetProductById(id int) (Product, error)
@@ -7,6 +12,7 @@ type Service interface {
 	UpdateProduct(inputID GetProductDetailInput, inputData CreateProductInput) (Product, error)
 	DeleteProduct(inputID GetProductDetailInput) (string, error)
 	SaveImage(ID int, fileLocation string) (Product, error)
+	CreateProductBulk(workerIndex int, counter int, jobs []interface{}) (Product, error)
 }
 
 type service struct {
@@ -104,4 +110,24 @@ func (s *service) SaveImage(ID int, fileLocation string) (Product, error) {
 
 	return updatedProduct, nil
 
+}
+
+func (s *service) CreateProductBulk(workerIndex int, counter int, jobs []interface{}) (Product, error) {
+	product := Product{}
+	product.Name = fmt.Sprintf("%v", jobs[0])
+	product.Serial_number = fmt.Sprintf("%v", jobs[1])
+	price := fmt.Sprintf("%v", jobs[2])
+
+	convertPrice, err := strconv.Atoi(price)
+	if err != nil {
+		return product, err
+	}
+	product.Price = convertPrice
+
+	newProducts, err := s.repository.Save(product)
+	if err != nil {
+		return newProducts, err
+	}
+
+	return newProducts, nil
 }
