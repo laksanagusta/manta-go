@@ -85,3 +85,34 @@ func (h *transactionHandler) FindTransactionByUser(c *gin.Context) {
 	response := helper.APIResponse("Success load transaction", http.StatusOK, "success", transaction.FormatTransactions(loadTransaction))
 	c.JSON(http.StatusOK, response)
 }
+
+func (h *transactionHandler) UpdateTransaction(c *gin.Context) {
+	var id transaction.FindById
+	err := c.ShouldBindUri(&id)
+	if err != nil {
+		response := helper.APIResponse("Failed to update transaction", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	var inputData transaction.TransactionInput
+	err = c.ShouldBindJSON(&inputData)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"error": errors}
+		response := helper.APIResponse("Failed to update transaction", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	updatedTransaction, err := h.service.UpdateTransaction(id, inputData)
+	if err != nil {
+		response := helper.APIResponse("Failed to update transaction", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("Success create transaction", http.StatusOK, "success", transaction.FormatTransaction(updatedTransaction))
+	c.JSON(http.StatusOK, response)
+
+}

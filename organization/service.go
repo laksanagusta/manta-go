@@ -1,6 +1,8 @@
 package organization
 
-import "errors"
+import (
+	"errors"
+)
 
 type Service interface {
 	Save(input OrganizationCreateInput) (Organization, error)

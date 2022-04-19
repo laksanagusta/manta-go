@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"encoding/csv"
 	"fmt"
 	"net/http"
 	"novocaine-dev/auth"
 	"novocaine-dev/helper"
 	"novocaine-dev/user"
 	"strconv"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,10 +16,11 @@ import (
 type userHandler struct {
 	userService user.Service
 	authService auth.Service
+	job         user.Job
 }
 
-func NewUserHandler(userService user.Service, authService auth.Service) *userHandler {
-	return &userHandler{userService, authService}
+func NewUserHandler(userService user.Service, authService auth.Service, job user.Job) *userHandler {
+	return &userHandler{userService, authService, job}
 }
 
 func (h *userHandler) RegisterUser(c *gin.Context) {
@@ -160,4 +163,52 @@ func (h *userHandler) DeleteUser(c *gin.Context) {
 	response := helper.APIResponse("Success delete user", http.StatusOK, "success", deletedUser)
 	c.JSON(http.StatusOK, response)
 
+}
+
+func (h *userHandler) CreateUserBulk(c *gin.Context) {
+	file, _, err := c.Request.FormFile("excelfile")
+	if err != nil {
+		response := helper.APIResponse("Failed to create user", http.StatusBadRequest, "error", err)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	jobs := make(chan []interface{}, 0)
+	wg := new(sync.WaitGroup)
+
+	currentUser := c.MustGet("currentUser").(user.User)
+
+	reader := csv.NewReader(file)
+
+	var line []string
+
+	go h.job.DispatchWorkersCreateUserBulk_(jobs, wg)
+
+	i := 1
+	for {
+		line, err = reader.Read()
+		if err != nil {
+			break
+		}
+
+		//ignore header line
+		if i == 1 {
+			continue
+		}
+
+		rowOrdered := make([]interface{}, 0)
+		for _, val := range line {
+			rowOrdered = append(rowOrdered, val)
+		}
+		rowOrdered = append(rowOrdered, currentUser.OrganizationId)
+
+		wg.Add(1)
+		jobs <- rowOrdered
+		i++
+	}
+
+	wg.Wait()
+
+	response := helper.APIResponse("Success create user!", http.StatusOK, "success", nil)
+	c.JSON(http.StatusOK, response)
 }

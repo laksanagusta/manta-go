@@ -11,6 +11,7 @@ type Service interface {
 	FindById(transactionId int) (Transaction, error)
 	AddToCart(input AddToCartInput) (Transaction, error)
 	FindTransactionByUser(userId int) ([]Transaction, error)
+	UpdateTransaction(id FindById, inputData TransactionInput) (Transaction, error)
 }
 
 type service struct {
@@ -102,4 +103,22 @@ func (s *service) FindTransactionByUser(userId int) ([]Transaction, error) {
 	}
 
 	return transaction, nil
+}
+
+func (s *service) UpdateTransaction(id FindById, inputData TransactionInput) (Transaction, error) {
+	transaction, err := s.repository.FindById(id.ID)
+	if err != nil {
+		return transaction, err
+	}
+
+	transaction.TransactionTitle = inputData.TransactionTitle
+	transaction.TransactionStatus = inputData.TransactionStatus
+
+	updatedTransaction, err := s.repository.Update(transaction)
+	if err != nil {
+		return updatedTransaction, err
+	}
+
+	return updatedTransaction, nil
+
 }

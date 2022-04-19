@@ -226,42 +226,29 @@ func (h *productHandler) CreateProductBulk(c *gin.Context) {
 
 	var line []string
 
-	go h.job.DispatchWorkers(jobs, wg)
+	go h.job.DispatchWorkersCreateProductBulk_(jobs, wg)
 
-	bulkProductsArr := []product.BulkProducts{}
-
+	i := 1
 	for {
-		bulkProduct := product.BulkProducts{}
-		//store acquired data for each line in the line
 		line, err = reader.Read()
 		if err != nil {
 			break
 		}
 
-		if line[0] == "name" {
+		//ignore header line
+		if i == 1 {
 			continue
 		}
-
-		price, err := strconv.Atoi(line[2])
-		if err != nil {
-			response := helper.APIResponse("Failed to create product", http.StatusBadRequest, "error", err)
-			c.JSON(http.StatusBadRequest, response)
-			return
-		}
-
-		bulkProduct.Name = line[0]
-		bulkProduct.Price = price
-		bulkProduct.SerialNumber = line[1]
-
-		bulkProductsArr = append(bulkProductsArr, bulkProduct)
 
 		rowOrdered := make([]interface{}, 0)
 		for _, each := range line {
 			rowOrdered = append(rowOrdered, each)
 		}
+		rowOrdered = append(rowOrdered, currentUser.OrganizationId, currentUser.ID)
 
 		wg.Add(1)
 		jobs <- rowOrdered
+		i++
 	}
 
 	wg.Wait()

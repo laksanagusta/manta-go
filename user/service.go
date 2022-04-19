@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -14,6 +15,7 @@ type Service interface {
 	UserFindAll() ([]User, error)
 	UpdateUser(inputID GetUserDetailInput, inputData UpdateUserInput) (User, error)
 	DeleteUser(inputID GetUserDetailInput) (string, error)
+	CreateUserBulk(workerIndex int, counter int, jobs []interface{}) (User, error)
 }
 
 type service struct {
@@ -162,4 +164,16 @@ func (s *service) UpdateUserRole(inputID GetUserDetailInput, inputData UpdateUse
 
 	return updatedUser, nil
 
+}
+
+func (s *service) CreateUserBulk(workerIndex int, counter int, jobs []interface{}) (User, error) {
+	user := User{}
+	user.Name = fmt.Sprintf("%v", jobs[0])
+
+	newUsers, err := s.repository.Save(user)
+	if err != nil {
+		return newUsers, err
+	}
+
+	return newUsers, nil
 }

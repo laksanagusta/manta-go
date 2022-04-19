@@ -44,9 +44,10 @@ func SetupRoutes(db *gorm.DB) gin.Engine {
 	authService := auth.NewService()
 
 	productJob := product.NewJob(productService)
+	userJob := user.NewJob(userService)
 
 	//Handler
-	userHandler := handler.NewUserHandler(userService, authService)
+	userHandler := handler.NewUserHandler(userService, authService, userJob)
 	productHandler := handler.NewProductHandler(productService, productJob)
 	taskHandler := handler.NewTaskHandler(taskService, userService)
 	taskHistoryHandler := handler.NewTaskHistoryHandler(taskHistoryService, taskService, userService)

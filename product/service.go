@@ -116,13 +116,27 @@ func (s *service) CreateProductBulk(workerIndex int, counter int, jobs []interfa
 	product := Product{}
 	product.Name = fmt.Sprintf("%v", jobs[0])
 	product.Serial_number = fmt.Sprintf("%v", jobs[1])
-	price := fmt.Sprintf("%v", jobs[2])
 
+	price := fmt.Sprintf("%v", jobs[2])
 	convertPrice, err := strconv.Atoi(price)
 	if err != nil {
 		return product, err
 	}
 	product.Price = convertPrice
+
+	organizationId := fmt.Sprintf("%v", jobs[3])
+	convertOrganizationId, err := strconv.Atoi(organizationId)
+	if err != nil {
+		return product, err
+	}
+	product.OrganizationId = convertOrganizationId
+
+	userId := fmt.Sprintf("%v", jobs[4])
+	convertUserId, err := strconv.Atoi(userId)
+	if err != nil {
+		return product, err
+	}
+	product.User_id = convertUserId
 
 	newProducts, err := s.repository.Save(product)
 	if err != nil {
